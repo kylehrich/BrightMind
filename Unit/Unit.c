@@ -129,3 +129,55 @@ void set_unit_state(State state) {
 void set_unit_num(unsigned int num) {
 	unit.num = num;
 }
+
+void SwitchOn(void){
+	HAL_GPIO_WritePin(GPIOF, GPIO_PIN_12, GPIO_PIN_SET); //dir ccw
+	int threshold = 60;
+	for(int i = 0; i < threshold; i++){
+		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, GPIO_PIN_SET); //step
+		HAL_Delay(1);
+		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, GPIO_PIN_RESET); //step
+		HAL_Delay(1);
+	}
+}
+
+void SwitchOff(void){
+	HAL_GPIO_WritePin(GPIOF, GPIO_PIN_12, GPIO_PIN_RESET); //dir cw
+	int threshold = 60;
+	for(int i = 0; i < threshold; i++){
+		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, GPIO_PIN_SET); //step
+		HAL_Delay(1);
+		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, GPIO_PIN_RESET); //step
+	}
+}
+void toggle_switch(State state) { // toggling switch with the given state
+	// move stepper before assigning it
+	// hard check that the switch needs to be changed within the called function as a double check
+	if (unit.state == On && state == Off)
+	{
+		// call the according stepper function
+		SwitchOff();
+	}
+	else if (unit.state == Off && state == On)
+	{
+		SwitchOn();
+	}
+}
+void toggle_switch_interrupt() {
+	// move stepper before assigning it
+	// hard check that the switch needs to be changed within the called function as a double check
+	if (unit.state == On)
+	{
+		// call the according stepper function
+		set_unit_state(Off);
+		SwitchOff();
+	}
+	else if (unit.state == Off || unit.state == Err)
+	{
+		set_unit_state(On);
+		SwitchOn();
+	}
+}
+
+
+
